@@ -28,6 +28,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/k1LoW/pr-revert/gh"
 	"github.com/k1LoW/pr-revert/repo"
@@ -53,8 +54,25 @@ var rootCmd = &cobra.Command{
 	Version:      version.Version,
 	SilenceUsage: true,
 	Args: func(cmd *cobra.Command, args []string) error {
+		var err error
+		if os.Getenv("PR_REVERT_LATEST") != "" && l == 0 {
+			l, err = strconv.Atoi(os.Getenv("PR_REVERT_LATEST"))
+			if err != nil {
+				return err
+			}
+		}
+		if os.Getenv("PR_REVERT_UNTIL") != "" && u == "" {
+			u = os.Getenv("PR_REVERT_UNTIL")
+		}
+		if os.Getenv("PR_REVERT_NUMBER") != "" && n == 0 {
+			n, err = strconv.Atoi(os.Getenv("PR_REVERT_NUMBER"))
+			if err != nil {
+				return err
+			}
+		}
+
 		if l == 0 && u == "" && n == 0 {
-			return errors.New("--latest (-l) or --until (-u) or --number (-n) is required")
+			return errors.New("--latest (-l, PR_REVERT_LATEST) or --until (-u, PR_REVERT_UNTIL) or --number (-n, PR_REVERT_NUMBER) is required")
 		}
 		return nil
 	},
