@@ -11,5 +11,5 @@ ENTRYPOINT ["/entrypoint.sh"]
 COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-COPY octocov_*.deb /tmp/
+COPY pr-revert_*.deb /tmp/
 RUN dpkg -i /tmp/pr-revert_*.deb
