@@ -31,6 +31,24 @@ $ pr-revert --latest 5
 $ pr-revert --until '2 hours'
 ```
 
+### Revert pull requests without new pull request
+
+``` console
+$ pr-revert --latest 3 --no-pull-request
+```
+
+### Revert pull requests without cleanup
+
+``` console
+$ pr-revert --latest 3 --no-cleanup
+```
+
+### Revert pull requests and push to default branch of remote repository
+
+``` console
+$ pr-revert --latest 3 --no-branch
+```
+
 ## Requirements
 
 - Git
