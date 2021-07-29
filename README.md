@@ -62,3 +62,11 @@ $ pr-revert --latest 3 --no-branch
 | `GITHUB_SERVER_URL` | The the GitHub server URL. | `https://github.com` |
 | `GITHUB_API_URL` | The GitHub API URL | `https://api.github.com` |
 | `GITHUB_GRAPHQL_URL` | The GitHub GraphQL API URL | `https://api.github.com/graphql` |
+
+## Environment Variables
+
+| Environment variable | Description |
+| --- | --- |
+| `PR_REVERT_LATEST` | Can be used instead of the `--latest` option |
+| `PR_REVERT_UNTIL` | Can be used instead of the `--until` option |
+| `PR_REVERT_NUMBER` | Can be used instead of the `--number` option |
