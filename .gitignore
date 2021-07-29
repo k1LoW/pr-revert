@@ -1,0 +1,5 @@
+/*.debug
+/pr-revert
+/dist/
+coverage.txt
+.go-version

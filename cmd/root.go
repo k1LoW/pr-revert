@@ -22,47 +22,144 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"context"
+	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
+	"io"
+	"log"
 	"os"
+
+	"github.com/k1LoW/pr-revert/gh"
+	"github.com/k1LoW/pr-revert/repo"
+	"github.com/k1LoW/pr-revert/version"
+	"github.com/spf13/cobra"
 )
 
-
+var (
+	l         int
+	u         string
+	n         int
+	noPush    bool
+	noPR      bool
+	noCleanup bool
+	noBranch  bool
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "pr-revert",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:          "pr-revert",
+	Short:        "pr-revert is a tool for reverting pull requests",
+	Long:         `pr-revert is a tool for reverting pull requests.`,
+	Version:      version.Version,
+	SilenceUsage: true,
+	Args: func(cmd *cobra.Command, args []string) error {
+		if l == 0 && u == "" && n == 0 {
+			return errors.New("--latest (-l) or --until (-u) or --number (-n) is required")
+		}
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := context.Background()
+		r, err := repo.New(ctx)
+		if err != nil {
+			return err
+		}
+		if noCleanup {
+			cmd.Printf("temporary working directory: %s\n", r.Dir())
+		} else {
+			defer r.Cleanup()
+		}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+		c, err := gh.New(ctx)
+		if err != nil {
+			return err
+		}
+
+		var prs gh.PullRequestNodes
+		if n > 0 {
+			pr, err := c.FetchMergedPullRequest(ctx, n)
+			if err != nil {
+				return err
+			}
+			prs = gh.PullRequestNodes{pr}
+		} else {
+			prs, err = c.FetchMergedPullRequests(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		if l > 0 {
+			prs, err = prs.Latest(l)
+			if err != nil {
+				return err
+			}
+		}
+		if u != "" {
+			prs, err = prs.Before(u)
+			if err != nil {
+				return err
+			}
+		}
+
+		var branch string
+
+		if noBranch {
+			branch = c.DefaultBranch()
+		} else {
+			branch = prs.Branch()
+			if err := r.Switch(ctx, branch); err != nil {
+				return err
+			}
+		}
+		for _, pr := range prs {
+			oid := pr.MergeCommit.AbbreviatedOid
+			if err := r.RevertMergeCommit(ctx, oid); err != nil {
+				return err
+			}
+		}
+		if !noPush {
+			if err := r.Push(ctx, branch); err != nil {
+				return err
+			}
+			if !noPR {
+				title := prs.Title()
+				body := prs.Body()
+				if err := c.CreatePullRequest(ctx, branch, title, body); err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	rootCmd.SetOut(os.Stdout)
+	rootCmd.SetErr(os.Stderr)
+
+	log.SetOutput(io.Discard)
+	if env := os.Getenv("DEBUG"); env != "" {
+		debug, err := os.Create(fmt.Sprintf("%s.debug", version.Name))
+		if err != nil {
+			rootCmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		log.SetOutput(debug)
+	}
+
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.pr-revert.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().IntVarP(&l, "latest", "l", 0, "Number of most recently merged pull requests to revert")
+	rootCmd.Flags().StringVarP(&u, "until", "u", "", "Duration of most recently merged pull requests to revert")
+	rootCmd.Flags().IntVarP(&n, "number", "n", 0, "Number of merged pull request to revert")
+	rootCmd.Flags().BoolVarP(&noPush, "no-push", "", false, "Do not push branch")
+	rootCmd.Flags().BoolVarP(&noPR, "no-pull-request", "", false, "Do not create a pull request")
+	rootCmd.Flags().BoolVarP(&noCleanup, "no-cleanup", "", false, "Do not cleanup local repository")
+	rootCmd.Flags().BoolVarP(&noBranch, "no-branch", "", false, "Do not create branch")
 }
-
-
