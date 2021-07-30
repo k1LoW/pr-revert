@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.4.1](https://github.com/k1LoW/pr-revert/compare/v0.4.0...v0.4.1) (2021-07-30)
+
+* Set options via environment variables ( `PR_REVERT_NO_*` ) [#7](https://github.com/k1LoW/pr-revert/pull/7) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.4.0](https://github.com/k1LoW/pr-revert/compare/v0.3.0...v0.4.0) (2021-07-30)
 
 * Fail if opened pull request already exists [#6](https://github.com/k1LoW/pr-revert/pull/6) ([k1LoW](https://github.com/k1LoW))
