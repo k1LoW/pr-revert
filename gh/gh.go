@@ -20,6 +20,7 @@ import (
 const limit = 100
 const defaultServerURL = "https://github.com"
 const defaultGraphQLURL = "https://api.github.com/graphql"
+const sigTemplate = "<!-- Reverted by pr-bullet: %s -->"
 
 type Client struct {
 	v3            *github.Client
@@ -115,21 +116,22 @@ func (prs PullRequestNodes) Title() string {
 }
 
 func (prs PullRequestNodes) Body() string {
-	numbers := []string{}
+	l := []string{}
 	for _, pr := range prs {
 		if os.Getenv("GITHUB_SERVER_URL") == "" || os.Getenv("GITHUB_SERVER_URL") == defaultServerURL {
 			// github.com
-			numbers = append(numbers, fmt.Sprintf("- #%d", pr.Number))
+			l = append(l, fmt.Sprintf("- #%d", pr.Number))
 		} else {
-			numbers = append(numbers, fmt.Sprintf("- [**%s** #%d](%s)", pr.Title, pr.Number, pr.URL))
+			l = append(l, fmt.Sprintf("- [**%s** #%d](%s)", pr.Title, pr.Number, pr.URL))
 		}
 	}
-	footer := ""
+	sig := fmt.Sprintf(sigTemplate, prs.Branch())
+	footer := fmt.Sprintf("\n%s\n", sig)
 	if os.Getenv("CI") != "" && os.Getenv("GITHUB_RUN_ID") != "" {
-		footer = fmt.Sprintf("\n---\nCreated by %s/%s/actions/runs/%s\n", os.Getenv("GITHUB_SERVER_URL"), os.Getenv("GITHUB_REPOSITORY"), os.Getenv("GITHUB_RUN_ID"))
+		footer = fmt.Sprintf("\n---\nCreated by %s/%s/actions/runs/%s\n%s\n", os.Getenv("GITHUB_SERVER_URL"), os.Getenv("GITHUB_REPOSITORY"), os.Getenv("GITHUB_RUN_ID"), sig)
 	}
 
-	return fmt.Sprintf("Reverted pull requests:\n\n%s\n%s", strings.Join(numbers, "\n"), footer)
+	return fmt.Sprintf("Reverted pull requests:\n\n%s\n%s", strings.Join(l, "\n"), footer)
 }
 
 func (prs PullRequestNodes) Latest(l int) (PullRequestNodes, error) {
