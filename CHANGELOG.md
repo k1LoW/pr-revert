@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.4.0](https://github.com/k1LoW/pr-revert/compare/v0.3.0...v0.4.0) (2021-07-30)
+
+* Fail if opened pull request already exists [#6](https://github.com/k1LoW/pr-revert/pull/6) ([k1LoW](https://github.com/k1LoW))
+* Fail if no difference between the reverted branch and the default branch [#5](https://github.com/k1LoW/pr-revert/pull/5) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.3.0](https://github.com/k1LoW/pr-revert/compare/v0.2.2...v0.3.0) (2021-07-30)
 
 * Fix pull request body [#4](https://github.com/k1LoW/pr-revert/pull/4) ([k1LoW](https://github.com/k1LoW))
