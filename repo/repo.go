@@ -44,22 +44,6 @@ func New(ctx context.Context) (*Repo, error) {
 	splitted := strings.SplitN(strings.Trim(string(b), "\n"), " ", 3)
 	v := splitted[2]
 
-	if os.Getenv("CI") != "" && os.Getenv("GITHUB_RUN_ID") != "" {
-		name := "github-actions"
-		email := "github-actions@github.com"
-		if os.Getenv("GITHUB_ACTOR") != "" {
-			name = os.Getenv("GITHUB_ACTOR")
-			email = fmt.Sprintf("%s@users.noreply.github.com", os.Getenv("GITHUB_ACTOR"))
-		}
-		// set temporary config
-		if err := exec.CommandContext(ctx, "git", "-C", r.d, "config", "user.name", os.Getenv("GITHUB_ACTOR")).Run(); err != nil {
-			return nil, err
-		}
-		if err := exec.CommandContext(ctx, "git", "-C", r.d, "config", "user.email", email).Run(); err != nil {
-			return nil, err
-		}
-	}
-
 	d, err := os.MkdirTemp("", "pr-revert")
 	if err != nil {
 		return nil, err
