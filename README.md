@@ -70,3 +70,7 @@ $ pr-revert --latest 3 --no-branch
 | `PR_REVERT_LATEST` | Can be used instead of the `--latest` option |
 | `PR_REVERT_UNTIL` | Can be used instead of the `--until` option |
 | `PR_REVERT_NUMBER` | Can be used instead of the `--number` option |
+| `PR_REVERT_NO_PUSH` | Can be used instead of the `--no-push` option |
+| `PR_REVERT_NO_PULL_REQUEST` | Can be used instead of the `--no-pull-request` option |
+| `PR_REVERT_NO_CLEANUP` | Can be used instead of the `--no-cleanup` option |
+| `PR_REVERT_NO_BRANCH` | Can be used instead of the `--no-branch` option |

@@ -70,6 +70,18 @@ var rootCmd = &cobra.Command{
 				return err
 			}
 		}
+		if os.Getenv("PR_REVERT_NO_PUSH") != "" && !noPush {
+			noPush = true
+		}
+		if os.Getenv("PR_REVERT_NO_PULL_REQUEST") != "" && !noPR {
+			noPR = true
+		}
+		if os.Getenv("PR_REVERT_NO_CLEANUP") != "" && !noCleanup {
+			noCleanup = true
+		}
+		if os.Getenv("PR_REVERT_NO_BRANCH") != "" && !noBranch {
+			noBranch = true
+		}
 
 		if l == 0 && u == "" && n == 0 {
 			return errors.New("--latest (-l, PR_REVERT_LATEST) or --until (-u, PR_REVERT_UNTIL) or --number (-n, PR_REVERT_NUMBER) is required")
