@@ -57,6 +57,22 @@ func New(ctx context.Context) (*Repo, error) {
 		return nil, err
 	}
 
+	if os.Getenv("CI") != "" && os.Getenv("GITHUB_RUN_ID") != "" {
+		name := "github-actions"
+		email := "github-actions@github.com"
+		if os.Getenv("GITHUB_ACTOR") != "" {
+			name = os.Getenv("GITHUB_ACTOR")
+			email = fmt.Sprintf("%s@users.noreply.github.com", os.Getenv("GITHUB_ACTOR"))
+		}
+		// set temporary config
+		if err := exec.CommandContext(ctx, "git", "-C", d, "config", "user.name", name).Run(); err != nil {
+			return nil, err
+		}
+		if err := exec.CommandContext(ctx, "git", "-C", d, "config", "user.email", email).Run(); err != nil {
+			return nil, err
+		}
+	}
+
 	r, err := git.PlainOpen(d)
 	if err != nil {
 		return nil, err
