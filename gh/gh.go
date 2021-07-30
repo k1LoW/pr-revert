@@ -18,6 +18,7 @@ import (
 )
 
 const limit = 100
+const defaultServerURL = "https://github.com"
 const defaultGraphQLURL = "https://api.github.com/graphql"
 
 type Client struct {
@@ -116,7 +117,12 @@ func (prs PullRequestNodes) Title() string {
 func (prs PullRequestNodes) Body() string {
 	numbers := []string{}
 	for _, pr := range prs {
-		numbers = append(numbers, fmt.Sprintf("- [%s #%d](%s)", pr.Title, pr.Number, pr.URL))
+		if os.Getenv("GITHUB_SERVER_URL") == "" || os.Getenv("GITHUB_SERVER_URL") == defaultServerURL {
+			// github.com
+			numbers = append(numbers, fmt.Sprintf("- #%d", pr.Number))
+		} else {
+			numbers = append(numbers, fmt.Sprintf("- [**%s** #%d](%s)", pr.Title, pr.Number, pr.URL))
+		}
 	}
 	return fmt.Sprintf("Reverted pull requests:\n\n%s\n", strings.Join(numbers, "\n"))
 }
