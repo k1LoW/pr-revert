@@ -143,7 +143,8 @@ var rootCmd = &cobra.Command{
 			if !noPR {
 				title := prs.Title()
 				body := prs.Body()
-				if err := c.CreatePullRequest(ctx, branch, title, body); err != nil {
+				sig := prs.Sig()
+				if err := c.CreatePullRequest(ctx, branch, title, body, sig); err != nil {
 					return err
 				}
 			}
