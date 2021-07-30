@@ -124,7 +124,12 @@ func (prs PullRequestNodes) Body() string {
 			numbers = append(numbers, fmt.Sprintf("- [**%s** #%d](%s)", pr.Title, pr.Number, pr.URL))
 		}
 	}
-	return fmt.Sprintf("Reverted pull requests:\n\n%s\n", strings.Join(numbers, "\n"))
+	footer := ""
+	if os.Getenv("CI") != "" && os.Getenv("GITHUB_RUN_ID") != "" {
+		footer = fmt.Sprintf("\n---\nCreated by %s/%s/actions/runs/%s\n", os.Getenv("GITHUB_SERVER_URL"), os.Getenv("GITHUB_REPOSITORY"), os.Getenv("GITHUB_RUN_ID"))
+	}
+
+	return fmt.Sprintf("Reverted pull requests:\n\n%s\n%s", strings.Join(numbers, "\n"), footer)
 }
 
 func (prs PullRequestNodes) Latest(l int) (PullRequestNodes, error) {
