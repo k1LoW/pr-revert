@@ -174,7 +174,7 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().IntVarP(&l, "latest", "l", 0, "Number of most recently merged pull requests to revert")
-	rootCmd.Flags().StringVarP(&u, "until", "u", "", "Duration of most recently merged pull requests to revert")
+	rootCmd.Flags().StringVarP(&u, "until", "u", "", "Duration of 'merged pull requests that will be reverted'")
 	rootCmd.Flags().IntVarP(&n, "number", "n", 0, "Number of merged pull request to revert")
 	rootCmd.Flags().BoolVarP(&noPush, "no-push", "", false, "Do not push branch")
 	rootCmd.Flags().BoolVarP(&noPR, "no-pull-request", "", false, "Do not create a pull request")
