@@ -90,16 +90,8 @@ func (r *Repo) Dir() string {
 }
 
 func (r *Repo) Switch(ctx context.Context, branch string) error {
-	v, err := version.Parse(r.gitVersion)
-	if err != nil {
-		return err
-	}
-	c, err := version.NewConstraints(">= 2.23.0")
-	if err != nil {
-		return err
-	}
 	cmd := exec.CommandContext(ctx, "git", "-C", r.d, "switch", "-c", branch)
-	if !c.Check(v) {
+	if !r.useSwitch() {
 		cmd = exec.CommandContext(ctx, "git", "-C", r.d, "checkout", "-b", branch)
 	}
 	cmd.Stdout = os.Stdout
@@ -119,16 +111,8 @@ func (r *Repo) Push(ctx context.Context, branch string) error {
 	if token == "" {
 		return fmt.Errorf("env %s is not set", "GITHUB_TOKEN")
 	}
-	v, err := version.Parse(r.gitVersion)
-	if err != nil {
-		return err
-	}
-	c, err := version.NewConstraints(">= 2.23.0")
-	if err != nil {
-		return err
-	}
 	cmd := exec.CommandContext(ctx, "git", "-C", r.d, "switch", branch)
-	if !c.Check(v) {
+	if !r.useSwitch() {
 		cmd = exec.CommandContext(ctx, "git", "-C", r.d, "checkout", branch)
 	}
 
@@ -149,4 +133,16 @@ func (r *Repo) Push(ctx context.Context, branch string) error {
 func (r *Repo) Cleanup() error {
 	log.Println("Cleanup repository")
 	return os.RemoveAll(r.d)
+}
+
+func (r *Repo) useSwitch() bool {
+	v, err := version.Parse(r.gitVersion)
+	if err != nil {
+		return false
+	}
+	c, err := version.NewConstraints(">= 2.23.0")
+	if err != nil {
+		return false
+	}
+	return c.Check(v)
 }
