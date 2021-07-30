@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.3.0](https://github.com/k1LoW/pr-revert/compare/v0.2.2...v0.3.0) (2021-07-30)
+
+* Fix pull request body [#4](https://github.com/k1LoW/pr-revert/pull/4) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.2.2](https://github.com/k1LoW/pr-revert/compare/v0.2.1...v0.2.2) (2021-07-30)
 
 * Set git config for GitHub Actinos [#3](https://github.com/k1LoW/pr-revert/pull/3) ([k1LoW](https://github.com/k1LoW))
