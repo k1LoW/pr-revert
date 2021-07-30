@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/aquasecurity/go-version/pkg/version"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 )
@@ -15,8 +16,9 @@ import (
 const defaultServerURL = "https://github.com"
 
 type Repo struct {
-	r *git.Repository
-	d string
+	r          *git.Repository
+	d          string
+	gitVersion string
 }
 
 func New(ctx context.Context) (*Repo, error) {
@@ -35,6 +37,12 @@ func New(ctx context.Context) (*Repo, error) {
 	if _, err := exec.LookPath("git"); err != nil {
 		return nil, err
 	}
+	b, err := exec.CommandContext(ctx, "git", "version").Output()
+	if err != nil {
+		return nil, err
+	}
+	splitted := strings.SplitN(strings.Trim(string(b), "\n"), " ", 3)
+	v := splitted[2]
 
 	d, err := os.MkdirTemp("", "pr-revert")
 	if err != nil {
@@ -55,8 +63,9 @@ func New(ctx context.Context) (*Repo, error) {
 	}
 
 	return &Repo{
-		r: r,
-		d: d,
+		r:          r,
+		d:          d,
+		gitVersion: v,
 	}, nil
 }
 
@@ -65,7 +74,18 @@ func (r *Repo) Dir() string {
 }
 
 func (r *Repo) Switch(ctx context.Context, branch string) error {
+	v, err := version.Parse(r.gitVersion)
+	if err != nil {
+		return err
+	}
+	c, err := version.NewConstraints(">= 2.23.0")
+	if err != nil {
+		return err
+	}
 	cmd := exec.CommandContext(ctx, "git", "-C", r.d, "switch", "-c", branch)
+	if !c.Check(v) {
+		cmd = exec.CommandContext(ctx, "git", "-C", r.d, "checkout", "-b", branch)
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -83,7 +103,19 @@ func (r *Repo) Push(ctx context.Context, branch string) error {
 	if token == "" {
 		return fmt.Errorf("env %s is not set", "GITHUB_TOKEN")
 	}
+	v, err := version.Parse(r.gitVersion)
+	if err != nil {
+		return err
+	}
+	c, err := version.NewConstraints(">= 2.23.0")
+	if err != nil {
+		return err
+	}
 	cmd := exec.CommandContext(ctx, "git", "-C", r.d, "switch", branch)
+	if !c.Check(v) {
+		cmd = exec.CommandContext(ctx, "git", "-C", r.d, "checkout", branch)
+	}
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
