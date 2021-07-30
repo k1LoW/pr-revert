@@ -20,6 +20,7 @@ import (
 const limit = 100
 const defaultServerURL = "https://github.com"
 const defaultGraphQLURL = "https://api.github.com/graphql"
+const sigTemplate = "<!-- Reverted by pr-bullet: %s -->"
 
 type Client struct {
 	v3            *github.Client
@@ -87,6 +88,7 @@ func New(ctx context.Context) (*Client, error) {
 type PullRequestNode struct {
 	Number      int
 	Title       string
+	Body        string
 	URL         string
 	Merged      bool
 	MergedAt    time.Time
@@ -115,21 +117,30 @@ func (prs PullRequestNodes) Title() string {
 }
 
 func (prs PullRequestNodes) Body() string {
-	numbers := []string{}
+	l := []string{}
 	for _, pr := range prs {
 		if os.Getenv("GITHUB_SERVER_URL") == "" || os.Getenv("GITHUB_SERVER_URL") == defaultServerURL {
 			// github.com
-			numbers = append(numbers, fmt.Sprintf("- #%d", pr.Number))
+			l = append(l, fmt.Sprintf("- #%d", pr.Number))
 		} else {
-			numbers = append(numbers, fmt.Sprintf("- [**%s** #%d](%s)", pr.Title, pr.Number, pr.URL))
+			l = append(l, fmt.Sprintf("- [**%s** #%d](%s)", pr.Title, pr.Number, pr.URL))
 		}
 	}
-	footer := ""
+	sig := prs.Sig()
+	footer := fmt.Sprintf("\n%s\n", sig)
 	if os.Getenv("CI") != "" && os.Getenv("GITHUB_RUN_ID") != "" {
-		footer = fmt.Sprintf("\n---\nCreated by %s/%s/actions/runs/%s\n", os.Getenv("GITHUB_SERVER_URL"), os.Getenv("GITHUB_REPOSITORY"), os.Getenv("GITHUB_RUN_ID"))
+		footer = fmt.Sprintf("\n---\nCreated by %s/%s/actions/runs/%s\n%s\n", os.Getenv("GITHUB_SERVER_URL"), os.Getenv("GITHUB_REPOSITORY"), os.Getenv("GITHUB_RUN_ID"), sig)
 	}
 
-	return fmt.Sprintf("Reverted pull requests:\n\n%s\n%s", strings.Join(numbers, "\n"), footer)
+	return fmt.Sprintf("Reverted pull requests:\n\n%s\n%s", strings.Join(l, "\n"), footer)
+}
+
+func (prs PullRequestNodes) Sig() string {
+	numbers := []string{}
+	for _, pr := range prs {
+		numbers = append(numbers, fmt.Sprintf("#%d", pr.Number))
+	}
+	return fmt.Sprintf(sigTemplate, strings.Join(numbers, " "))
 }
 
 func (prs PullRequestNodes) Latest(l int) (PullRequestNodes, error) {
@@ -205,7 +216,42 @@ func (c *Client) FetchMergedPullRequests(ctx context.Context) (PullRequestNodes,
 	return q.Repogitory.PullRequests.Nodes, nil
 }
 
-func (c *Client) CreatePullRequest(ctx context.Context, branch, title, body string) error {
+func (c *Client) duplicatePullRequests(ctx context.Context, sig string) (bool, error) {
+	var q struct {
+		Repogitory struct {
+			PullRequests struct {
+				Nodes    PullRequestNodes
+				PageInfo struct {
+					HasNextPage bool
+				}
+			} `graphql:"pullRequests(first: $limit, states: [OPEN], orderBy: {direction: DESC, field: UPDATED_AT})"`
+		} `graphql:"repository(owner: $owner, name: $repo)"`
+	}
+	variables := map[string]interface{}{
+		"owner": githubv4.String(c.owner),
+		"repo":  githubv4.String(c.repo),
+		"limit": githubv4.Int(limit),
+	}
+	if err := c.v4.Query(ctx, &q, variables); err != nil {
+		return true, err
+	}
+	for _, pr := range q.Repogitory.PullRequests.Nodes {
+		if strings.Contains(pr.Body, sig) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (c *Client) CreatePullRequest(ctx context.Context, branch, title, body, sig string) error {
+	dup, err := c.duplicatePullRequests(ctx, sig)
+	if err != nil {
+		return err
+	}
+	if dup {
+		return fmt.Errorf("pull request already exists: %s", title)
+	}
+
 	pr := &github.NewPullRequest{
 		Title:               &title,
 		Head:                &branch,
