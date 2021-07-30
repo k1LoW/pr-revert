@@ -16,9 +16,10 @@ import (
 const defaultServerURL = "https://github.com"
 
 type Repo struct {
-	r          *git.Repository
-	d          string
-	gitVersion string
+	r             *git.Repository
+	d             string
+	gitVersion    string
+	defaultBranch string
 }
 
 func New(ctx context.Context) (*Repo, error) {
@@ -57,6 +58,13 @@ func New(ctx context.Context) (*Repo, error) {
 		return nil, err
 	}
 
+	bb, err := exec.CommandContext(ctx, "git", "-C", d, "branch").Output()
+	if err != nil {
+		return nil, err
+	}
+	splitted = strings.SplitN(strings.Trim(string(bb), "\n"), " ", 2)
+	defaultBranch := splitted[1]
+
 	if os.Getenv("CI") != "" && os.Getenv("GITHUB_RUN_ID") != "" {
 		name := "github-actions"
 		email := "github-actions@github.com"
@@ -79,9 +87,10 @@ func New(ctx context.Context) (*Repo, error) {
 	}
 
 	return &Repo{
-		r:          r,
-		d:          d,
-		gitVersion: v,
+		r:             r,
+		d:             d,
+		gitVersion:    v,
+		defaultBranch: defaultBranch,
 	}, nil
 }
 
@@ -121,6 +130,15 @@ func (r *Repo) Push(ctx context.Context, branch string) error {
 	if err := cmd.Run(); err != nil {
 		return err
 	}
+
+	b, err := exec.CommandContext(ctx, "git", "-C", r.d, "diff", r.defaultBranch).Output()
+	if err != nil {
+		return err
+	}
+	if strings.Trim(string(b), "\n") == "" {
+		return fmt.Errorf("there is no difference between the reverted branch and the default branch (%s)", r.defaultBranch)
+	}
+
 	return r.r.Push(&git.PushOptions{
 		Auth: &http.BasicAuth{
 			Username: "dummy",
