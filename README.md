@@ -2,6 +2,8 @@
 
 pr-revert is a tool for reverting pull requests.
 
+**:octocat: GitHub Actions for pr-revert is [here](https://github.com/k1LoW/pr-revert-action) !!**
+
 ## Usage
 
 ### Default behavior
