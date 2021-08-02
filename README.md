@@ -74,3 +74,52 @@ $ pr-revert --latest 3 --no-branch
 | `PR_REVERT_NO_PULL_REQUEST` | Can be used instead of the `--no-pull-request` option |
 | `PR_REVERT_NO_CLEANUP` | Can be used instead of the `--no-cleanup` option |
 | `PR_REVERT_NO_BRANCH` | Can be used instead of the `--no-branch` option |
+
+## Install
+
+**deb:**
+
+Use [dpkg-i-from-url](https://github.com/k1LoW/dpkg-i-from-url)
+
+``` console
+$ export PR-REVERT_VERSION=X.X.X
+$ curl -L https://git.io/dpkg-i-from-url | bash -s -- https://github.com/k1LoW/pr-revert/releases/download/v$PR-REVERT_VERSION/pr-revert_$PR-REVERT_VERSION-1_amd64.deb
+```
+
+**RPM:**
+
+``` console
+$ export PR-REVERT_VERSION=X.X.X
+$ yum install https://github.com/k1LoW/pr-revert/releases/download/v$PR-REVERT_VERSION/pr-revert_$PR-REVERT_VERSION-1_amd64.rpm
+```
+
+**apk:**
+
+Use [apk-add-from-url](https://github.com/k1LoW/apk-add-from-url)
+
+``` console
+$ export PR-REVERT_VERSION=X.X.X
+$ curl -L https://git.io/apk-add-from-url | sh -s -- https://github.com/k1LoW/pr-revert/releases/download/v$PR-REVERT_VERSION/pr-revert_$PR-REVERT_VERSION-1_amd64.apk
+```
+
+**homebrew tap:**
+
+```console
+$ brew install k1LoW/tap/pr-revert
+```
+
+**manually:**
+
+Download binary from [releases page](https://github.com/k1LoW/pr-revert/releases)
+
+**go get:**
+
+```console
+$ go get github.com/k1LoW/pr-revert
+```
+
+**docker:**
+
+```console
+$ docker pull ghcr.io/k1low/pr-revert:latest
+```
