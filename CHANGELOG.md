@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.4.2](https://github.com/k1LoW/pr-revert/compare/v0.4.1...v0.4.2) (2022-02-09)
+
+* Support darwin arm64 [#8](https://github.com/k1LoW/pr-revert/pull/8) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.4.1](https://github.com/k1LoW/pr-revert/compare/v0.4.0...v0.4.1) (2021-07-30)
 
 * Set options via environment variables ( `PR_REVERT_NO_*` ) [#7](https://github.com/k1LoW/pr-revert/pull/7) ([k1LoW](https://github.com/k1LoW))
