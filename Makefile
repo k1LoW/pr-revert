@@ -30,7 +30,7 @@ depsdev:
 	go get github.com/securego/gosec/cmd/gosec
 
 prerelease:
-	git pull origin --tag
+	git pull origin main --tag
 	ghch -w -N ${VER}
 	gocredits -skip-missing . > CREDITS
 	cat _EXTRA_CREDITS >> CREDITS
@@ -39,6 +39,7 @@ prerelease:
 	git tag ${VER}
 
 release:
+	git push origin main --tag
 	goreleaser --rm-dist
 
 .PHONY: default test
