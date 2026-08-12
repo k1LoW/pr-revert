@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/aquasecurity/go-version v0.0.0-20210121072130-637058cfe492
-	github.com/go-git/go-git/v5 v5.19.1
+	github.com/go-git/go-git/v5 v5.19.2
 	github.com/google/go-github/v37 v37.0.0
 	github.com/k1LoW/duration v1.1.0
 	github.com/shurcooL/githubv4 v0.0.0-20210725200734-83ba7b4c9228
@@ -33,9 +33,9 @@ require (
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	golang.org/x/crypto v0.52.0 // indirect
-	golang.org/x/net v0.55.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
